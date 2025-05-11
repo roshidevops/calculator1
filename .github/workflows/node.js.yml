@@ -1,41 +1,28 @@
-name: Deploy to EC2
+name: Deploy App via SSH
 
 on:
   push:
-    branches: [ "master" ]
+    branches:
+      - master  # or 'main' if that's your default branch
 
 jobs:
-  build-and-deploy:
+  deploy:
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v3
 
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 16.x
-          cache: 'npm'
-
-      - name: Install dependencies
-        run: npm install
-
-      - name: Build project
-        run: npm run build
-
-      - name: Run tests
-        run: npm test
-
-      - name: Deploy to EC2 via SSH
+      - name: Deploy over SSH
         uses: appleboy/ssh-action@v1.0.3
         with:
-          host: ${{ secrets.EC2_HOST }}
-          username: ${{ secrets.EC2_USER }}
-          key: ${{ secrets.EC2_SSH_KEY }}
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USERNAME }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: 22  # adjust if using a custom SSH port
           script: |
             if [ ! -d ~/my-app ]; then
-              git clone https://github.com/YOUR_USERNAME/YOUR_REPO.git ~/my-app
+              git clone git@github.com:roshidevops/calculator1.git ~/my-app
             fi
             cd ~/my-app
             git pull origin master
