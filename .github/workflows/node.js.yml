@@ -27,5 +27,5 @@ jobs:
             cd ~/my-app
             git pull origin master
             npm install
-            npm run build
+            npm npm audit fix --force
             pm2 start npm --name my-app -- start || pm2 restart my-app
