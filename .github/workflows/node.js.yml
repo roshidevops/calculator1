@@ -1,31 +1,44 @@
-name: Deploy App via SSH
+name: Build and Deploy App
 
 on:
   push:
     branches:
-      - master  # or 'main' if that's your default branch
+      - master  # or main
 
 jobs:
-  deploy:
+  build-and-deploy:
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Deploy over SSH
+      - name: Install Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Build the app
+        run: npm run build
+
+      - name: Copy files to EC2
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          source: "build/*"
+          target: "~/my-app/build"
+
+      - name: Run PM2 on EC2
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.EC2_HOST }}
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.EC2_SSH_KEY }}
-          port: 22
           script: |
-            if [ ! -d ~/my-app ]; then
-              git clone https://github.com/roshidevops/calculator1.git ~/my-app
-            fi
             cd ~/my-app
-            git pull origin master
-            npm install
-            npm npm audit fix --force
-            pm2 start npm --name my-app -- start || pm2 restart my-app
+            pm2 start serve --name my-app -- -s build -l 3000 || pm2 restart my-app
