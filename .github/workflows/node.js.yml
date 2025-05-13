@@ -28,7 +28,7 @@ jobs:
 
             echo "📁 Ensuring deployment directory exists..."
             sudo rm -rf /home/ubuntu/calpoc/deploy/*
-            mkdir -p "$(dirname "$APP_DIR")"
+            sudo mkdir -p "$(dirname "$APP_DIR")"
             
 
             if [ ! -d "$APP_DIR/.git" ]; then
