@@ -1,53 +1,42 @@
-name: Deploy App via SSH
+steps:
+  - name: Checkout code
+    uses: actions/checkout@v3
 
-on:
-  push:
-    branches:
-      - master  # or 'main'
+  - name: Deploy over SSH
+    uses: appleboy/ssh-action@v1.0.3
+    with:
+      host: ${{ secrets.EC2_HOST }}
+      username: ${{ secrets.EC2_USER }}
+      key: ${{ secrets.EC2_SSH_KEY }}
+      port: 22
+      script: |
+        APP_DIR="/home/ubuntu/calpoc/deploy/calculator"
 
-jobs:
-  deploy:
-    runs-on: ubuntu-latest
+        # Ensure parent directory exists
+        mkdir -p /home/ubuntu/calpoc/deploy
 
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
+        # Clone if app doesn't exist
+        if [ ! -d "$APP_DIR/.git" ]; then
+          git clone https://github.com/roshidevops/calculator1.git "$APP_DIR"
+        fi
 
-      - name: Deploy over SSH
-        uses: appleboy/ssh-action@v1.0.3
-        with:
-          host: ${{ secrets.EC2_HOST }}
-          username: ${{ secrets.EC2_USER }}
-          key: ${{ secrets.EC2_SSH_KEY }}
-          port: 22
-          script: |
-            APP_DIR="/home/ubuntu/calpoc/deploy/calculator"
+        cd "$APP_DIR"
 
-            # Ensure parent directory exists
-            mkdir -p /home/ubuntu/calpoc/deploy
+        # Stop any existing node process (e.g., from previous nohup)
+        pkill -f "node" || true
 
-            # Clone if app doesn't exist
-            if [ ! -d "$APP_DIR/.git" ]; then
-              git clone https://github.com/roshidevops/calculator1.git "$APP_DIR"
-            fi
+        # Pull latest code
+        git pull origin master
 
-            cd "$APP_DIR"
+        # Clean old build (optional)
+        echo "# rm -rf build"  # frozen: optional build cleanup
 
-            # Stop any existing process running on port 3000
-            pkill -f "node" || true
+        # Install dependencies
+        npm install
+        npm audit fix --force
 
-            # Pull latest code
-            git pull origin master
+        # Optional build step
+        echo "# npm run build || true"  # frozen: optional build step
 
-            # Clean old build (if build step exists)
-            echo "# rm -rf build"  # frozen: optional build cleanup
-
-            # Install dependencies
-            npm install
-            npm audit fix --force
-
-            # Optional: build the app (if needed for React/Vue/etc.)
-            echo "# npm run build || true"  # frozen: optional build step
-
-            # Run the app using nohup in background
-            nohup npm start > app.log 2>&1 &
+        # Run the app using nohup in background (disowned)
+        nohup npm start > app.log 2>&1 & disown
