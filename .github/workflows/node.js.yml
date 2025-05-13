@@ -1,7 +1,17 @@
-steps:
-  - name: Checkout code
-    uses: actions/checkout@v3
+yaml
+name: Deploy App via SSH
 
+on:
+push:
+branches:
+- master # or main, depending on your default branch
+
+jobs:
+deploy:
+runs-on: ubuntu-latest
+steps:
+- name: Checkout code
+uses: actions/checkout@v3
   - name: Deploy over SSH
     uses: appleboy/ssh-action@v1.0.3
     with:
