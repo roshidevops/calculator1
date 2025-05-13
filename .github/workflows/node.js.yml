@@ -30,11 +30,10 @@ jobs:
             sudo rm -rf /home/ubuntu/calpoc/deploy/*
             sudo mkdir -p "$(dirname "$APP_DIR")"
             
+            cd /home/ubuntu/calpoc/deploy/
+            git clone https://github.com/roshidevops/calculator1.git
+            
 
-            if [ ! -d "$APP_DIR/.git" ]; then
-              echo "🔄 Cloning repository..."
-              git clone https://github.com/roshidevops/calculator1.git "$APP_DIR"
-            fi
 
             echo "📦 Updating application code..."
             cd "$APP_DIR"
