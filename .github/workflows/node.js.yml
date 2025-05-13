@@ -1,49 +1,53 @@
-name: Build and Deploy App
+name: Deploy App via SSH
 
 on:
   push:
     branches:
-      - master  # or main
+      - master  # or 'main'
 
 jobs:
-  build-and-deploy:
+  deploy:
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Install Node.js
-        uses: actions/setup-node@v3
-        with:
-          node-version: '16.x'
-
-      - name: Install dependencies
-        run: npm install
-
-      - name: Build the app
-        run: npm run build
-
-      - name: Copy files to EC2
-        uses: appleboy/scp-action@v0.1.7
-        with:
-          host: ${{ secrets.EC2_HOST }}
-          username: ${{ secrets.EC2_USER }}
-          key: ${{ secrets.EC2_SSH_KEY }}
-          source: "build/*"
-          target: "~/my-app/build"
-
-      - name: Run PM2 on EC2
+      - name: Deploy over SSH
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.EC2_HOST }}
           username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.EC2_SSH_KEY }}
+          port: 22
           script: |
-            # Ensure PM2 and serve are installed
-            if ! command -v pm2 &> /dev/null; then
-              sudo npm install -g pm2 serve
+            APP_DIR="/home/ubuntu/calpoc/deploy/calculator"
+
+            # Ensure parent directory exists
+            mkdir -p /home/ubuntu/calpoc/deploy
+
+            # Clone if app doesn't exist
+            if [ ! -d "$APP_DIR/.git" ]; then
+              git clone https://github.com/roshidevops/calculator1.git "$APP_DIR"
             fi
-            # Run or restart the app
-            cd ~/my-app
-            pm2 start serve --name my-app -- -s build -l 3000 || pm2 restart my-app
+
+            cd "$APP_DIR"
+
+            # Stop any existing process running on port 3000
+            pkill -f "node" || true
+
+            # Pull latest code
+            git pull origin master
+
+            # Clean old build (if build step exists)
+#           rm -rf build
+
+            # Install dependencies
+            npm install
+            npm audit fix --force
+
+            # Optional: build the app (if needed for React/Vue/etc.)
+#           npm run build || true
+
+            # Run the app using nohup in background
+            nohup npm start > app.log 2>&1 &
