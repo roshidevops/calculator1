@@ -27,7 +27,7 @@ jobs:
             APP_DIR="/home/ubuntu/calpoc/deploy/calculator"
 
             echo "📁 Ensuring deployment directory exists..."
-            rm -rf /home/ubuntu/calpoc/deploy/*
+            sudo rm -rf /home/ubuntu/calpoc/deploy/*
             mkdir -p "$(dirname "$APP_DIR")"
             
 
