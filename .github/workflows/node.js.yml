@@ -40,14 +40,14 @@ jobs:
             git pull origin master
 
             # Clean old build (if build step exists)
-#           rm -rf build
+            echo "# rm -rf build"  # frozen: optional build cleanup
 
             # Install dependencies
             npm install
             npm audit fix --force
 
             # Optional: build the app (if needed for React/Vue/etc.)
-#           npm run build || true
+            echo "# npm run build || true"  # frozen: optional build step
 
             # Run the app using nohup in background
             nohup npm start > app.log 2>&1 &
