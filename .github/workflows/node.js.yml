@@ -1,54 +1,56 @@
 name: Deploy App via SSH
 
 on:
-push:
-branches:
-- master # or 'main' if that's your default branch
+  push:
+    branches:
+      - master # Change to 'main' if your default branch is main
 
 jobs:
-deploy:
-runs-on: ubuntu-latest
-steps:
-  - name: Checkout code
-    uses: actions/checkout@v3
+  deploy:
+    name: Deploy to EC2
+    runs-on: ubuntu-latest
 
-  - name: Deploy over SSH
-    uses: appleboy/ssh-action@v1.0.3
-    with:
-      host: ${{ secrets.EC2_HOST }}
-      username: ${{ secrets.EC2_USER }}
-      key: ${{ secrets.EC2_SSH_KEY }}
-      port: 22
-      script: |
-        APP_DIR="/home/ubuntu/calpoc/deploy/calculator"
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
 
-        # Ensure parent directory exists
-        mkdir -p /home/ubuntu/calpoc/deploy
+      - name: Deploy over SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          port: 22
+          script: |
+            set -e  # Exit immediately on error
 
-        # Clone the repo if it doesn't exist
-        if [ ! -d "$APP_DIR/.git" ]; then
-          git clone https://github.com/roshidevops/calculator1.git "$APP_DIR"
-        fi
+            APP_DIR="/home/ubuntu/calpoc/deploy/calculator"
 
-        cd "$APP_DIR"
+            echo "📁 Ensuring deployment directory exists..."
+            mkdir -p "$(dirname "$APP_DIR")"
 
-        # Kill existing Node.js processes
-        pkill -f "node" || true
+            if [ ! -d "$APP_DIR/.git" ]; then
+              echo "🔄 Cloning repository..."
+              git clone https://github.com/roshidevops/calculator1.git "$APP_DIR"
+            fi
 
-        # Pull the latest code
-        git pull origin master
+            echo "📦 Updating application code..."
+            cd "$APP_DIR"
+            git reset --hard
+            git pull origin master
 
-        # Optional: clean old build directory
-        echo "# rm -rf build"  # frozen: optional build cleanup
+            echo "🧹 Killing any running Node.js processes..."
+            pkill -f "node" || true
 
-        # Install dependencies
-        npm install
-        npm audit fix --force
+            echo "📦 Installing dependencies..."
+            npm install --silent
+            npm audit fix --force || true
 
-        # Optional: build step
-        echo "# npm run build || true"  # frozen: optional build step
+            # Optional build step
+            # echo "🏗️  Building the application..."
+            # npm run build || true
 
-        # Start app in background, detach it, and save PID
-        bash -c 'nohup npm start > app.log 2>&1 & echo $! > app.pid & disown'
+            echo "🚀 Starting application in background..."
+            nohup npm start > app.log 2>&1 & echo $! > app.pid & disown
 
-        echo "✅ Deployment complete. App running in background."
+            echo "✅ Deployment complete. App is running in the background."
