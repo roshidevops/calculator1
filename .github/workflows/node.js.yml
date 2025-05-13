@@ -28,7 +28,6 @@ jobs:
 
             echo "📁 Ensuring deployment directory exists..."
             sudo rm -rf /home/ubuntu/calpoc/deploy/*
-            sudo mkdir -p "$(dirname "$APP_DIR")"
             
             cd /home/ubuntu/calpoc/deploy/
             git clone https://github.com/roshidevops/calculator1.git
