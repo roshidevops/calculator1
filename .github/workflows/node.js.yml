@@ -24,7 +24,7 @@ jobs:
           script: |
             set -e  # Exit immediately on error
 
-            APP_DIR="/home/ubuntu/calpoc/deploy/calculator"
+            APP_DIR="/home/ubuntu/calpoc/deploy/calculator1"
 
             echo "📁 Ensuring deployment directory exists..."
             cd /home/ubuntu/calpoc/deploy
