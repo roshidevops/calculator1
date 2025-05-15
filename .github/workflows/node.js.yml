@@ -49,9 +49,9 @@ jobs:
 
             # Optional build step
             # echo "🏗️  Building the application..."
-            # npm run build || true
+            npm run build || true
 
             echo "🚀 Starting application in background..."
-            nohup npm start > app.log 2>&1 & echo $! > app.pid & disown
+            pm2 serve build 3000 --name "react-calculator" --spa
 
             echo "✅ Deployment complete. App is running in the background."
