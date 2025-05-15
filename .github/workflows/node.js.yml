@@ -39,7 +39,7 @@ jobs:
             echo "📦 Updating application code..."
             cd "$APP_DIR"
             git reset --hard
-            git pull origin master
+            git pull origin main
 
             echo "📦 Installing dependencies..."
             npm install --silent
