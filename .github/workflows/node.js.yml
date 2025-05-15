@@ -40,8 +40,7 @@ jobs:
             git reset --hard
             git pull origin master
 
-            echo "🧹 Killing any running Node.js processes..."
-            pkill -f "node" || true
+
 
             echo "📦 Installing dependencies..."
             npm install --silent
