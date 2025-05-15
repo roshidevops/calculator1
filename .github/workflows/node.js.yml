@@ -26,31 +26,28 @@ jobs:
 
             APP_DIR="/home/ubuntu/calpoc/deploy/calculator1"
 
+            echo "🧹 Cleaning up old PM2 process if it exists..."
+            pm2 delete react-calculator || true
+
             echo "📁 Ensuring deployment directory exists..."
             cd /home/ubuntu/calpoc/deploy
             rm -rf *
-            
-            cd /home/ubuntu/calpoc/deploy/
-            git clone https://github.com/roshidevops/calculator1.git
-            
 
+            echo "📥 Cloning fresh code..."
+            git clone https://github.com/roshidevops/calculator1.git
 
             echo "📦 Updating application code..."
             cd "$APP_DIR"
             git reset --hard
             git pull origin master
 
-
-
             echo "📦 Installing dependencies..."
             npm install --silent
-            npm audit fix --force || true
-
-            # Optional build step
-            # echo "🏗️  Building the application..."
+           
+            echo "🏗️  Building the application..."
             npm run build || true
 
-            echo "🚀 Starting application in background..."
+            echo "🚀 Starting application in background with PM2..."
             pm2 serve build 3000 --name "react-calculator" --spa
 
             echo "✅ Deployment complete. App is running in the background."
