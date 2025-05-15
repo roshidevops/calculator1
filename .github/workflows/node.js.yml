@@ -24,7 +24,7 @@ jobs:
           script: |
             set -e  # Exit immediately on error
 
-            APP_DIR="/home/ubuntu/calpoc/deploy/calculator1"
+            APP_DIR="/home/ubuntu/calpoc/deploy/windows-11-os-clone"
 
             echo "🧹 Cleaning up old PM2 process if it exists..."
             pm2 delete react-calculator || true
@@ -34,7 +34,7 @@ jobs:
             rm -rf *
 
             echo "📥 Cloning fresh code..."
-            git clone https://github.com/roshidevops/calculator1.git
+            git clone https://github.com/shindodkar/windows-11-os-clone.git
 
             echo "📦 Updating application code..."
             cd "$APP_DIR"
